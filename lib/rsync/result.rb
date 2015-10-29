@@ -5,6 +5,7 @@ module Rsync
   class Result
     # Exit code returned by rsync
     attr_accessor :exitcode
+    attr_reader :raw
 
     # Error messages by exit code
     ERROR_CODES = {
@@ -34,6 +35,16 @@ module Rsync
     def initialize(raw, exitcode)
       @raw = raw
       @exitcode = exitcode
+    end
+
+    # Try to parse @raw, when retururned exitcode 0 and @raw isn't "Success".
+    def list_modules
+      if success? && @raw != "Success"
+        modules = @raw.split(/[\n,\t]/).each { |m| m.strip! }
+        modules = Hash[modules.each_slice(2).to_a]
+      else
+        return nil
+      end
     end
 
     # Whether the rsync job was run without errors.
